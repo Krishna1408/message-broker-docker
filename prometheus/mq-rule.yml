@@ -1,0 +1,17 @@
+groups:
+- name: memcached
+  rules:
+  - alert: rabbitmq_up
+    expr: rabbitmq_up != 1
+    for: 1m
+    labels:
+      severity: high
+    annotations:
+      description: Rabbitmq is not running.
+  - alert: rabbitmq_queue_messages
+    expr: rabbitmq_queue_messages_total > 100
+    for: 5m
+    labels:
+      severity: low
+    annotations:
+      description: Rabbitmq Message queue has grown big

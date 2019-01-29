@@ -1,0 +1,95 @@
+version: '3'
+services:
+  fluentd:
+    image: fluent/fluentd:v1.3.2-debian
+    container_name: logger
+    volumes:
+      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+      - /tmp:/tmp
+    ports:
+      - 24224:24224
+
+  rabbitmq-server:
+    image: rabbitmq:3.7.8-management
+    depends_on:
+      - fluentd
+    environment:
+      RABBITMQ_DEFAULT_USER: "admin"
+      RABBITMQ_DEFAULT_PASS: "mqserverpass"
+    container_name: mq-server
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: :24224
+        tag: rabbitmqlogs
+
+  publisher:
+    build: ./publisher/
+    container_name: publisher
+    environment:
+      USER: "admin"
+      PASS: "mqserverpass"
+    depends_on:
+      - rabbitmq-server
+    ports:
+      - 5000:5000
+      - 15672:15672
+
+  subscriber:
+    build: ./subscriber/
+    container_name: receiver
+    environment:
+      USER: "admin"
+      PASS: "mqserverpass"
+    depends_on:
+      - publisher
+    ports:
+      - 5001:5001
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:v2.6.1
+    volumes:
+     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+     - ./prometheus/mq-rule.yml:/etc/prometheus/mq-rule.yml
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
+    ports:
+     - 9090:9090
+    depends_on:
+     - mq-exporter
+     - alertmanager
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: :24224
+        tag: prometheus
+
+  mq-exporter:
+    image: kbudde/rabbitmq-exporter
+    depends_on:
+     - rabbitmq-server
+    environment:
+      PUBLISH_PORT: 9149
+      RABBIT_URL: http://mq-server:15672
+      LOG_LEVEL: error
+      RABBIT_USER: 'admin'
+      RABBIT_PASSWORD: "mqserverpass"
+    ports:
+     - 9149:9149
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: :24224
+        tag: rabbitmq-exporter
+
+  alertmanager:
+    image: quay.io/prometheus/alertmanager:v0.15.3
+    container_name: alertmanager
+    ports:
+      - 9093:9093
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: :24224
+        tag: rabbitmq-exporter
+
+

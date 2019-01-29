@@ -1,0 +1,26 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/mq-rule.yml
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: prometheus-mq
+
+  - job_name: 'rabbitmq-exporter'
+    static_configs:
+      - targets: ['mq-exporter:9149']
+        labels:
+          instance: rabbitmq-exporter
+
