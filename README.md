@@ -131,5 +131,16 @@ docker-compose stop
 docker rm -f $(docker ps -a -q)
 docker image rm -f $(docker image ls)
 ```
+## Security Vulnerabilities:
 
+1. Only basic auth is being used for rabbitmq and no encryption so data transmission is still not secure. As this is a test project it should be ok.
+2. Flask also comes with some vulnerabilities, version upgrade might be required if version in `requirement.txt` is having vulnerabilities.
+3. Logs are stored in local disk so anyone having access to the server can access log data.
+4. Docker images being used may also have some security risks involved.
 
+## Performance Issues:
+
+1. There is no scaling involved so increasing load will break the application.
+2. Logs are being stored on local disk and if local disk is out of space fluentd will be impacted.
+3. We are running many services on one host system, if services are deployed across instances more resources will be available e.g. running logging and monitoring in another host will be useful.
+4. No High availability and impact on rabbitmq or python containers will lead to failure of services.
