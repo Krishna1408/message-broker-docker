@@ -30,7 +30,8 @@ In AWS there are two good ways to deploy kubernetes i.e. `KOPS` or `EKS`. Produc
 1. Using yaml manifests to deploy application and services. Password and keys can be passed via Kubernetes secrets and configurations can be passed as configmaps.
 2. Converting the yaml manifests to `helm charts` is very important step as it makes deployment process fast and robust.
 3. For storing the state of the service User can use AWS Elasticache or run solution like Redis as a statefulset. There is a Redis-operator also available which can be very useful to manage and operate Redis.
-4. Nginx ingress
+4. Nginx ingress can be used to created cost effective Load Balancer which even other applications can use across namespaces. 
+5. SSL can be provided using integration of ingress, cert-manager and letsencrypt.
 
 ## 3. Application Switch
 
